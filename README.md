@@ -12,8 +12,6 @@ machine-learning-svm/
 │   ├── dados_treinamento.xlsx   # Base histórica: q1..q10 + area_ti_atual (rótulo conhecido)
 │   └── dados_teste.xlsx         # Respostas reais do quiz: q1..q10 (sem rótulo conhecido)
 ├── graphs/                      # Gráficos gerados pela execução
-│   ├── distribuicao_classes.png
-│   ├── matriz_confusao.png
 │   ├── dispersao_2d.png
 │   └── dispersao_3d.png
 ├── src/
@@ -22,7 +20,7 @@ machine-learning-svm/
 │   ├── modelo_svm.py            # Divisão treino/validação, escala e treinamento do SVM
 │   ├── avaliacao.py             # Métricas de avaliação do modelo
 │   ├── previsao.py              # Previsão da área de TI para dados reais do quiz
-│   └── visualizacao.py          # Geração dos gráficos (distribuição, matriz, PCA 2D/3D)
+│   └── visualizacao.py          # Geração dos gráficos de dispersão PCA 2D/3D
 ├── main.py                      # Orquestra o pipeline de ponta a ponta
 └── requirements.txt
 ```
@@ -45,7 +43,7 @@ Em ambas, `id_usuario` e `data_hora` servem apenas para identificação/controle
 5. **Avalia** o modelo no conjunto de validação (acurácia, matriz de confusão, classification report).
 6. **Carrega e valida** `dados_teste.xlsx` (respostas reais do quiz, sem rótulo).
 7. **Aplica o mesmo `StandardScaler`** ajustado no treino e **prevê** a `area_ti_predita` de cada usuário real.
-8. **Gera gráficos**: distribuição das classes, matriz de confusão e dispersão 2D/3D (via PCA) com treino e teste identificáveis.
+8. **Gera os gráficos** "Gráfico de Dispersão 2D" e "Gráfico de Dispersão 3D" (via PCA), com treino e teste identificáveis.
 
 ## Principais módulos
 
@@ -70,9 +68,7 @@ Aplica o `scaler` já ajustado no treino, gera previsões e calcula `accuracy_sc
 Aplica o mesmo pré-processamento do treinamento às respostas reais do quiz (`dados_teste`) e retorna uma cópia do `DataFrame` com a coluna `area_ti_predita` preenchida pelo modelo.
 
 ### `src/visualizacao.py`
-- **`grafico_distribuicao_classes(y)`**: contagem de usuários por área de TI nos dados de treinamento.
-- **`grafico_matriz_confusao(matriz, labels)`**: heatmap da matriz de confusão com os nomes das áreas de TI.
-- **`grafico_dispersao_2d` / `grafico_dispersao_3d`**: reduzem as 10 respostas (`q1`..`q10`) para 2 ou 3 dimensões via `PCA`, plotando treino (círculos) e previsões reais do quiz (estrelas) coloridos por área de TI, permitindo visualizar agrupamentos e a separação entre classes.
+- **`grafico_dispersao_2d` / `grafico_dispersao_3d`**: reduzem as 10 respostas (`q1`..`q10`) para 2 ou 3 dimensões via `PCA`, plotando treino (círculos) e previsões reais do quiz (estrelas) coloridos por área de TI, permitindo visualizar agrupamentos e a separação entre classes. Títulos: "Gráfico de Dispersão 2D" e "Gráfico de Dispersão 3D".
 
 ## Como executar
 
@@ -90,15 +86,13 @@ pip install -r requirements.txt
 python main.py
 ```
 
-A execução imprime no console a validação/análise dos dados de treinamento, a divisão treino/validação, as métricas de avaliação do modelo e a `area_ti_predita` para cada usuário de `dados_teste.xlsx`, além de salvar os quatro gráficos na pasta `graphs/` (as janelas de plot também abrem interativamente, caso o ambiente suporte).
+A execução imprime no console a validação/análise dos dados de treinamento, a divisão treino/validação, as métricas de avaliação do modelo e a `area_ti_predita` para cada usuário de `dados_teste.xlsx`, além de salvar os dois gráficos de dispersão na pasta `graphs/` (as janelas de plot também abrem interativamente, caso o ambiente suporte).
 
 ## Resultados entregues
 
 - **Console**: validação e análise exploratória de `dados_treinamento.xlsx`, tamanho dos conjuntos de treino/validação, acurácia/matriz de confusão/`classification_report` do modelo, e a tabela final com `id_usuario`, `data_hora`, `q1`..`q10` e `area_ti_predita` para cada usuário de `dados_teste.xlsx`.
 - **Gráficos** (pasta `graphs/`):
-  - [`distribuicao_classes.png`](graphs/distribuicao_classes.png) — balanceamento das áreas de TI nos dados de treinamento.
-  - [`matriz_confusao.png`](graphs/matriz_confusao.png) — desempenho do classificador no conjunto de validação.
-  - [`dispersao_2d.png`](graphs/dispersao_2d.png) — projeção 2D (PCA) dos dados, com treino e previsões reais identificáveis por classe.
-  - [`dispersao_3d.png`](graphs/dispersao_3d.png) — projeção 3D (PCA) dos dados, com treino e previsões reais identificáveis por classe.
+  - [`dispersao_2d.png`](graphs/dispersao_2d.png) — "Gráfico de Dispersão 2D": projeção 2D (PCA) dos dados, com treino e previsões reais identificáveis por classe.
+  - [`dispersao_3d.png`](graphs/dispersao_3d.png) — "Gráfico de Dispersão 3D": projeção 3D (PCA) dos dados, com treino e previsões reais identificáveis por classe.
 
 > **Observação:** `data/dados_treinamento.xlsx` e `data/dados_teste.xlsx` contêm dados sintéticos gerados para fins didáticos, com o objetivo de demonstrar o fluxo completo de Machine Learning supervisionado (carregamento, validação, pré-processamento, treinamento, avaliação, previsão e visualização). Os resultados numéricos não devem ser interpretados como desempenho em um cenário de produção com dados reais de usuários.

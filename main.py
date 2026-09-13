@@ -19,8 +19,6 @@ from src.avaliacao import avaliar_modelo
 from src.previsao import prever_area_ti
 
 from src.visualizacao import (
-    grafico_distribuicao_classes,
-    grafico_matriz_confusao,
     grafico_dispersao_2d,
     grafico_dispersao_3d
 )
@@ -49,8 +47,6 @@ def main():
 
     print(f"\nÁreas de TI identificadas nos dados: {sorted(y.unique())}")
 
-    grafico_distribuicao_classes(y)
-
     # ----- 3. Dividir dados para treinamento/avaliação do modelo -----
 
     (
@@ -71,14 +67,12 @@ def main():
 
     # ----- 5. Avaliar o modelo treinado -----
 
-    _, matriz, labels = avaliar_modelo(
+    avaliar_modelo(
         modelo,
         scaler,
         X_teste_validacao,
         y_teste_validacao
     )
-
-    grafico_matriz_confusao(matriz, labels)
 
     # ----- 6. Carregar dados reais do quiz (dados_teste) -----
 

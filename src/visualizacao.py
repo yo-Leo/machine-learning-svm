@@ -6,50 +6,6 @@ from sklearn.decomposition import PCA
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 - necessário para habilitar a projeção 3D
 
 
-def grafico_distribuicao_classes(y):
-
-    plt.figure(figsize=(9, 5))
-
-    sns.countplot(x=y, order=sorted(y.unique()))
-
-    plt.title("Distribuição das Áreas de TI (Dados de Treinamento)")
-    plt.xlabel("Área de TI")
-    plt.ylabel("Quantidade de Usuários")
-    plt.xticks(rotation=20, ha="right")
-
-    plt.tight_layout()
-
-    plt.savefig("graphs/distribuicao_classes.png")
-
-    plt.show()
-
-
-def grafico_matriz_confusao(matriz, labels):
-
-    plt.figure(figsize=(8, 6))
-
-    sns.heatmap(
-        matriz,
-        annot=True,
-        fmt="d",
-        cmap="Blues",
-        xticklabels=labels,
-        yticklabels=labels
-    )
-
-    plt.title("Matriz de Confusão")
-    plt.xlabel("Área Prevista")
-    plt.ylabel("Área Real")
-    plt.xticks(rotation=20, ha="right")
-    plt.yticks(rotation=0)
-
-    plt.tight_layout()
-
-    plt.savefig("graphs/matriz_confusao.png")
-
-    plt.show()
-
-
 def _reduzir_dimensionalidade(X_treino, X_teste, n_componentes):
     """
     Reduz as 10 características do questionário (q1..q10) para n_componentes
@@ -110,7 +66,7 @@ def grafico_dispersao_2d(X_treino, y_treino, X_teste, y_teste_predita):
                 linewidth=0.6
             )
 
-    plt.title("Dispersão 2D das Áreas de TI (Redução via PCA)")
+    plt.title("Gráfico de Dispersão 2D")
     plt.xlabel("Componente Principal 1")
     plt.ylabel("Componente Principal 2")
     plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left", fontsize=8)
@@ -161,7 +117,7 @@ def grafico_dispersao_3d(X_treino, y_treino, X_teste, y_teste_predita):
                 linewidth=0.6
             )
 
-    eixo.set_title("Dispersão 3D das Áreas de TI (Redução via PCA)")
+    eixo.set_title("Gráfico de Dispersão 3D")
     eixo.set_xlabel("Componente Principal 1")
     eixo.set_ylabel("Componente Principal 2")
     eixo.set_zlabel("Componente Principal 3")
