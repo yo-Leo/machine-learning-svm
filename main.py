@@ -30,7 +30,7 @@ CAMINHO_DADOS_TESTE = "data/dados_teste.xlsx"
 
 def main():
 
-    # ----- 1. Carregar e validar dados de treinamento -----
+    # Carregar e validar dados de treinamento 
 
     df_treinamento = carregar_planilha(CAMINHO_DADOS_TREINAMENTO)
 
@@ -41,13 +41,13 @@ def main():
 
     analisar_dados(df_treinamento, titulo="DADOS DE TREINAMENTO")
 
-    # ----- 2. Separar características (X) e alvo (y) -----
+    # Separar características (X) e alvo (y)
 
     X, y = separar_features_alvo(df_treinamento, COLUNA_ALVO)
 
     print(f"\nÁreas de TI identificadas nos dados: {sorted(y.unique())}")
 
-    # ----- 3. Dividir dados para treinamento/avaliação do modelo -----
+    # Dividir dados para treinamento/avaliação do modelo 
 
     (
         X_treino,
@@ -61,11 +61,11 @@ def main():
     print(f"Treinamento: {len(X_treino)}")
     print(f"Validação: {len(X_teste_validacao)}")
 
-    # ----- 4. Treinar o modelo SVM -----
+    # Treinar o modelo SVM 
 
     modelo, scaler = treinar_modelo(X_treino, y_treino)
 
-    # ----- 5. Avaliar o modelo treinado -----
+    # Avaliar o modelo treinado 
 
     avaliar_modelo(
         modelo,
@@ -74,7 +74,7 @@ def main():
         y_teste_validacao
     )
 
-    # ----- 6. Carregar dados reais do quiz (dados_teste) -----
+    # Carregar dados reais do quiz (dados_teste) 
 
     df_teste = carregar_planilha(CAMINHO_DADOS_TESTE)
 
@@ -83,7 +83,7 @@ def main():
 
     df_teste = validar_dados_teste(df_teste)
 
-    # ----- 7. Realizar a previsão real com o modelo já treinado -----
+    # Realizar a previsão real com o modelo já treinado 
 
     resultado = prever_area_ti(modelo, scaler, df_teste)
 
@@ -95,7 +95,7 @@ def main():
 
     print(resultado[colunas_resultado].to_string(index=False))
 
-    # ----- 8. Visualização 2D e 3D (treino + previsões reais) -----
+    # Visualização 2D e 3D (treino + previsões reais) 
 
     grafico_dispersao_2d(
         X,
