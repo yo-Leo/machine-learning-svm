@@ -3,13 +3,13 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
 
-def dividir_dados(X, y):
+def dividir_dados(X, y, test_size=0.2, random_state=42):
 
     X_treino, X_teste, y_treino, y_teste = train_test_split(
         X,
         y,
-        test_size=0.2,
-        random_state=42,
+        test_size=test_size,
+        random_state=random_state,
         stratify=y
     )
 
@@ -29,7 +29,8 @@ def criar_modelo():
 
 def treinar_modelo(X_treino, y_treino):
 
-    # StandardScaler utilzado para garantir que todos os dados estejam em uma escala condizente de comparação 
+    # StandardScaler utilizado para garantir que todas as respostas do questionário
+    # estejam em uma escala condizente de comparação antes de treinar o SVM.
 
     scaler = StandardScaler()
 

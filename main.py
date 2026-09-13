@@ -1,7 +1,12 @@
 from src.carregar_dados import carregar_planilha
+
 from src.preprocessamento import (
+    COLUNAS_QUESTIONARIO,
+    COLUNA_ALVO,
     analisar_dados,
-    preparar_dados
+    validar_dados_treinamento,
+    validar_dados_teste,
+    separar_features_alvo
 )
 
 from src.modelo_svm import (
@@ -11,93 +16,105 @@ from src.modelo_svm import (
 
 from src.avaliacao import avaliar_modelo
 
+from src.previsao import prever_area_ti
+
 from src.visualizacao import (
     grafico_distribuicao_classes,
     grafico_matriz_confusao,
-    grafico_pca
+    grafico_dispersao_2d,
+    grafico_dispersao_3d
 )
 
-from src.previsao import realizar_previsao
 
-
-CAMINHO_PLANILHA = "data/dados_svm.xlsx"
-
-COLUNA_ALVO = "compra"
+CAMINHO_DADOS_TREINAMENTO = "data/dados_treinamento.xlsx"
+CAMINHO_DADOS_TESTE = "data/dados_teste.xlsx"
 
 
 def main():
 
-    df = carregar_planilha(
-        CAMINHO_PLANILHA
-    )
+    # ----- 1. Carregar e validar dados de treinamento -----
 
-    if df is None:
+    df_treinamento = carregar_planilha(CAMINHO_DADOS_TREINAMENTO)
+
+    if df_treinamento is None:
         return
 
-    analisar_dados(df)
+    df_treinamento = validar_dados_treinamento(df_treinamento)
 
-    X, y = preparar_dados(
-        df,
-        COLUNA_ALVO
-    )
+    analisar_dados(df_treinamento, titulo="DADOS DE TREINAMENTO")
+
+    # ----- 2. Separar características (X) e alvo (y) -----
+
+    X, y = separar_features_alvo(df_treinamento, COLUNA_ALVO)
+
+    print(f"\nÁreas de TI identificadas nos dados: {sorted(y.unique())}")
 
     grafico_distribuicao_classes(y)
 
+    # ----- 3. Dividir dados para treinamento/avaliação do modelo -----
+
     (
         X_treino,
-        X_teste,
+        X_teste_validacao,
         y_treino,
-        y_teste
+        y_teste_validacao
     ) = dividir_dados(X, y)
 
+    print("\n===== DIVISÃO DOS DADOS (TREINAMENTO/VALIDAÇÃO) =====")
 
-    print("\n===== DIVISÃO DOS DADOS =====")
+    print(f"Treinamento: {len(X_treino)}")
+    print(f"Validação: {len(X_teste_validacao)}")
 
-    print(
-        f"Treinamento: {len(X_treino)}"
-    )
+    # ----- 4. Treinar o modelo SVM -----
 
-    print(
-        f"Teste: {len(X_teste)}"
-    )
+    modelo, scaler = treinar_modelo(X_treino, y_treino)
 
-    modelo, scaler = treinar_modelo(
-        X_treino,
-        y_treino
-    )
+    # ----- 5. Avaliar o modelo treinado -----
 
-    previsoes, matriz = avaliar_modelo(
+    _, matriz, labels = avaliar_modelo(
         modelo,
         scaler,
-        X_teste,
-        y_teste
+        X_teste_validacao,
+        y_teste_validacao
     )
 
-    grafico_matriz_confusao(
-        matriz
+    grafico_matriz_confusao(matriz, labels)
+
+    # ----- 6. Carregar dados reais do quiz (dados_teste) -----
+
+    df_teste = carregar_planilha(CAMINHO_DADOS_TESTE)
+
+    if df_teste is None:
+        return
+
+    df_teste = validar_dados_teste(df_teste)
+
+    # ----- 7. Realizar a previsão real com o modelo já treinado -----
+
+    resultado = prever_area_ti(modelo, scaler, df_teste)
+
+    colunas_resultado = (
+        ["id_usuario", "data_hora"] + COLUNAS_QUESTIONARIO + ["area_ti_predita"]
     )
 
-    grafico_pca(
+    print("\n===== RESULTADO DA CLASSIFICAÇÃO (DADOS REAIS DO QUIZ) =====")
+
+    print(resultado[colunas_resultado].to_string(index=False))
+
+    # ----- 8. Visualização 2D e 3D (treino + previsões reais) -----
+
+    grafico_dispersao_2d(
         X,
-        y
+        y,
+        resultado[COLUNAS_QUESTIONARIO],
+        resultado["area_ti_predita"]
     )
 
-    novos_dados = {
-        "idade": 31,
-        "renda": 3500,
-        "score": 680
-    }
-
-    resultado = realizar_previsao(
-        modelo,
-        scaler,
-        novos_dados
-    )
-
-    print("\n===== NOVA PREVISÃO =====")
-
-    print(
-        f"Resultado previsto: {resultado}"
+    grafico_dispersao_3d(
+        X,
+        y,
+        resultado[COLUNAS_QUESTIONARIO],
+        resultado["area_ti_predita"]
     )
 
 
