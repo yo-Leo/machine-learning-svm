@@ -69,6 +69,7 @@ Aplica o mesmo pré-processamento do treinamento às respostas reais do quiz (`d
 
 ### `src/visualizacao.py`
 - **`grafico_dispersao_2d` / `grafico_dispersao_3d`**: reduzem as 10 respostas (`q1`..`q10`) para 2 ou 3 dimensões via `PCA`, plotando treino (círculos) e previsões reais do quiz (estrelas) coloridos por área de TI, permitindo visualizar agrupamentos e a separação entre classes. Títulos: "Gráfico de Dispersão 2D" e "Gráfico de Dispersão 3D".
+- **Hiperplano de separação**: como o SVM real é treinado com as 10 características originais (não visualizáveis diretamente), um SVM auxiliar (mesmos hiperparâmetros de `criar_modelo`) é treinado sobre as próprias componentes principais (2D/3D) só para fins de visualização. No gráfico 2D, as regiões de decisão são desenhadas com `contourf` e a fronteira entre elas com `contour` (linhas pretas). No gráfico 3D, uma grade tridimensional é classificada pelo modelo auxiliar e apenas os pontos onde a classe prevista muda em relação a um vizinho (fronteira de decisão) são plotados, formando uma superfície pontilhada que representa o hiperplano entre as classes.
 
 ## Como executar
 
