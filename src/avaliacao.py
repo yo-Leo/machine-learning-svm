@@ -13,14 +13,17 @@ def avaliar_modelo(modelo, scaler, X_teste, y_teste):
 
     acuracia = accuracy_score(y_teste, previsoes)
 
-    matriz = confusion_matrix(y_teste, previsoes)
+    labels = sorted(y_teste.unique())
+
+    matriz = confusion_matrix(y_teste, previsoes, labels=labels)
 
     relatorio = classification_report(
         y_teste,
-        previsoes
+        previsoes,
+        labels=labels
     )
 
-    print("\n===== RESULTADOS =====")
+    print("\n===== AVALIAÇÃO DO MODELO (VALIDAÇÃO) =====")
 
     print(f"Acurácia: {acuracia:.4f}")
 
@@ -32,4 +35,4 @@ def avaliar_modelo(modelo, scaler, X_teste, y_teste):
 
     print(relatorio)
 
-    return previsoes, matriz
+    return previsoes, matriz, labels

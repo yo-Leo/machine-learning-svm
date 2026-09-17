@@ -1,65 +1,75 @@
-# Machine Learning SVM
+# Machine Learning SVM — Classificação de Afinidade em TI
 
-Protótipo didático de classificação com **Support Vector Machine (SVM)**, construído em Python com `scikit-learn`. O projeto lê uma base de clientes a partir de uma planilha Excel, treina um classificador SVM para prever se um cliente realiza uma compra (`compra`: 0 ou 1) com base em `idade`, `renda` e `score`, avalia o modelo e gera gráficos de apoio à análise.
+Pipeline de Machine Learning supervisionado que utiliza **Support Vector Machine (SVM)**, construído em Python com `scikit-learn`, para classificar a área de Tecnologia da Informação (Front-end, Back-end, DevOps/Infraestrutura, Dados/Data Science, Inteligência Artificial ou Segurança da Informação) com a qual um usuário possui **maior afinidade**, a partir das respostas de um questionário Likert de 10 afirmações (`q1` a `q10`, cada uma de 1 — Discordo Totalmente a 5 — Concordo Totalmente).
+
+O resultado é uma **classificação de afinidade de perfil**, não uma determinação definitiva de profissão, competência ou carreira.
 
 ## Estrutura do projeto
 
 ```
 machine-learning-svm/
 ├── data/
-│   └── dados_svm.xlsx        # Base de dados de entrada
-├── graphs/                   # Gráficos gerados pela execução
-│   ├── distribuicao_classes.png
-│   ├── matriz_confusao.png
-│   └── dados_pca.png
+│   ├── dados_treinamento.xlsx   # Base histórica: q1..q10 + area_ti_atual (rótulo conhecido)
+│   └── dados_teste.xlsx         # Respostas reais do quiz: q1..q10 (sem rótulo conhecido)
+├── graphs/                      # Gráficos gerados pela execução
+│   ├── dispersao_2d.png
+│   └── dispersao_3d.png
 ├── src/
-│   ├── carregar_dados.py     # Leitura da planilha
-│   ├── preprocessamento.py   # Análise exploratória e limpeza dos dados
-│   ├── modelo_svm.py         # Divisão treino/teste, escala e treinamento do SVM
-│   ├── avaliacao.py          # Métricas de avaliação do modelo
-│   ├── previsao.py           # Previsão para novos dados
-│   └── visualizacao.py       # Geração dos gráficos
-├── main.py                   # Orquestra o pipeline de ponta a ponta
+│   ├── carregar_dados.py        # Leitura genérica de planilhas .xlsx
+│   ├── preprocessamento.py      # Validação, limpeza e separação de X/y
+│   ├── modelo_svm.py            # Divisão treino/validação, escala e treinamento do SVM
+│   ├── avaliacao.py             # Métricas de avaliação do modelo
+│   ├── previsao.py              # Previsão da área de TI para dados reais do quiz
+│   └── visualizacao.py          # Geração dos gráficos de dispersão PCA 2D/3D
+├── main.py                      # Orquestra o pipeline de ponta a ponta
 └── requirements.txt
 ```
 
-## O que o projeto faz
+## Fontes de dados
 
-O `main.py` executa um pipeline completo de Machine Learning supervisionado:
+O algoritmo trabalha com duas planilhas distintas:
 
-1. **Carrega** os dados de `data/dados_svm.xlsx`.
-2. **Analisa** os dados (tipos, nulos, estatísticas descritivas) para fins de inspeção manual.
-3. **Prepara** os dados: remove duplicados/nulos e separa variáveis preditoras (`X`) do alvo (`y`, coluna `compra`).
-4. **Divide** os dados em treino (80%) e teste (20%), de forma estratificada.
-5. **Treina** um `SVC` (SVM com kernel RBF) sobre os dados padronizados com `StandardScaler`.
-6. **Avalia** o modelo no conjunto de teste (acurácia, matriz de confusão, classification report).
-7. **Gera gráficos** (distribuição das classes, matriz de confusão e projeção PCA dos dados).
-8. **Realiza uma previsão de exemplo** para um novo cliente fictício.
+- **`dados_treinamento.xlsx`**: registros históricos com as respostas `q1`..`q10` e a coluna `area_ti_atual` (rótulo conhecido), usados para **treinar e avaliar** o modelo.
+- **`dados_teste.xlsx`**: respostas reais extraídas do quiz, contendo apenas `q1`..`q10` (sem `area_ti_atual`), usadas para **prever** a área de TI de novos usuários com o modelo já treinado.
 
-## Principais métodos
+Em ambas, `id_usuario` e `data_hora` servem apenas para identificação/controle e **não** são utilizadas como características do modelo.
+
+## O que o pipeline faz (`main.py`)
+
+1. **Carrega e valida** `dados_treinamento.xlsx` (colunas obrigatórias, respostas entre 1 e 5, `area_ti_atual` preenchida).
+2. **Separa** as características `X = [q1..q10]` do alvo `y = area_ti_atual`.
+3. **Divide** os dados em treino/validação (80/20, estratificado).
+4. **Treina** um `SVC` (SVM com kernel RBF) sobre os dados padronizados com `StandardScaler`.
+5. **Avalia** o modelo no conjunto de validação (acurácia, matriz de confusão, classification report).
+6. **Carrega e valida** `dados_teste.xlsx` (respostas reais do quiz, sem rótulo).
+7. **Aplica o mesmo `StandardScaler`** ajustado no treino e **prevê** a `area_ti_predita` de cada usuário real.
+8. **Gera os gráficos** "Gráfico de Dispersão 2D" e "Gráfico de Dispersão 3D" (via PCA), com treino e teste identificáveis.
+
+## Principais módulos
 
 ### `src/carregar_dados.py` — `carregar_planilha(caminho)`
-Lê o arquivo `.xlsx` com `pandas.read_excel` e retorna o `DataFrame`. Encapsula o carregamento em um `try/except` para não interromper o pipeline caso o arquivo esteja ausente ou corrompido, retornando `None` nesse caso (verificado logo em seguida em `main.py`).
+Lê um arquivo `.xlsx` com `pandas.read_excel`. Encapsula o carregamento em `try/except` para não interromper o pipeline caso o arquivo esteja ausente ou corrompido, retornando `None` nesse caso.
 
 ### `src/preprocessamento.py`
-- **`analisar_dados(df)`**: imprime informações do `DataFrame` (`info`, `head`, contagem de nulos, `describe`). É um método apenas de inspeção, usado para apoiar a análise exploratória — não altera os dados.
-- **`preparar_dados(df, coluna_alvo)`**: faz a limpeza mínima (remove duplicatas e linhas com valores ausentes) e separa as features (`X`) da variável alvo (`y`), dado o nome da coluna alvo (`"compra"`).
+- **`analisar_dados(df, titulo)`**: inspeção exploratória (`info`, `head`, nulos).
+- **`validar_dados_treinamento(df)`**: garante que as colunas obrigatórias (`id_usuario`, `data_hora`, `q1`..`q10`, `area_ti_atual`) existem, remove registros sem `area_ti_atual`, filtra respostas fora do intervalo 1–5 e remove duplicados por `id_usuario`.
+- **`validar_dados_teste(df)`**: mesma validação, porém sem exigir `area_ti_atual`.
+- **`separar_features_alvo(df, coluna_alvo)`**: separa `X` (`q1`..`q10`) de `y` (`area_ti_atual`).
 
 ### `src/modelo_svm.py`
-- **`dividir_dados(X, y)`**: usa `train_test_split` com `test_size=0.2`, `random_state=42` e `stratify=y` para garantir reprodutibilidade e manter a proporção das classes entre treino e teste.
-- **`criar_modelo()`**: instancia o `SVC` com kernel `"rbf"`, `C=1.0` e `gamma="scale"` — configuração padrão do scikit-learn, adequada para fronteiras de decisão não lineares.
-- **`treinar_modelo(X_treino, y_treino)`**: ajusta um `StandardScaler` aos dados de treino (essencial para SVM, sensível à escala das variáveis) e treina o modelo sobre os dados já padronizados. Retorna o modelo treinado **e** o `scaler`, pois o mesmo scaler precisa ser reaplicado depois em teste/novas previsões.
+- **`dividir_dados(X, y)`**: `train_test_split` com `test_size=0.2`, `random_state=42` e `stratify=y`.
+- **`criar_modelo()`**: `SVC` com kernel `"rbf"`, `C=1.0` e `gamma="scale"`.
+- **`treinar_modelo(X_treino, y_treino)`**: ajusta um `StandardScaler` aos dados de treino e treina o SVM sobre os dados padronizados. Retorna modelo **e** `scaler`, pois o mesmo `scaler` é reaplicado depois na validação e nos dados reais do quiz.
 
 ### `src/avaliacao.py` — `avaliar_modelo(modelo, scaler, X_teste, y_teste)`
-Aplica o `scaler` (já ajustado no treino) ao conjunto de teste, gera as previsões e calcula `accuracy_score`, `confusion_matrix` e `classification_report`, imprimindo tudo no console. Retorna as previsões e a matriz de confusão para uso posterior (geração do gráfico).
+Aplica o `scaler` já ajustado no treino, gera previsões e calcula `accuracy_score`, `confusion_matrix` e `classification_report` (multiclasse, com as áreas de TI identificadas nos dados). Retorna previsões, matriz e a lista de rótulos.
 
-### `src/previsao.py` — `realizar_previsao(modelo, scaler, novos_dados)`
-Recebe um dicionário com os dados de um novo cliente, converte para `DataFrame` (mantendo os nomes das colunas esperados pelo scaler/modelo), aplica a mesma padronização do treino e retorna a classe prevista (`0` ou `1`).
+### `src/previsao.py` — `prever_area_ti(modelo, scaler, df_teste)`
+Aplica o mesmo pré-processamento do treinamento às respostas reais do quiz (`dados_teste`) e retorna uma cópia do `DataFrame` com a coluna `area_ti_predita` preenchida pelo modelo.
 
 ### `src/visualizacao.py`
-- **`grafico_distribuicao_classes(y)`**: gráfico de barras com a contagem de cada classe do alvo, salvo em `graphs/distribuicao_classes.png`.
-- **`grafico_matriz_confusao(matriz)`**: heatmap da matriz de confusão, salvo em `graphs/matriz_confusao.png`.
-- **`grafico_pca(X, y)`**: reduz as features a 2 componentes principais via `PCA` e plota um scatter colorido pela classe, salvo em `graphs/dados_pca.png` — útil para visualizar a separabilidade das classes em 2D.
+- **`grafico_dispersao_2d` / `grafico_dispersao_3d`**: reduzem as 10 respostas (`q1`..`q10`) para 2 ou 3 dimensões via `PCA`, plotando treino (círculos) e previsões reais do quiz (estrelas) coloridos por área de TI, permitindo visualizar agrupamentos e a separação entre classes. Títulos: "Gráfico de Dispersão 2D" e "Gráfico de Dispersão 3D".
+- **Hiperplano de separação**: como o SVM real é treinado com as 10 características originais (não visualizáveis diretamente), um SVM auxiliar (mesmos hiperparâmetros de `criar_modelo`) é treinado sobre as próprias componentes principais (2D/3D) só para fins de visualização. No gráfico 2D, as regiões de decisão são desenhadas com `contourf` e a fronteira entre elas com `contour` (linhas pretas). No gráfico 3D, uma grade tridimensional é classificada pelo modelo auxiliar e apenas os pontos onde a classe prevista muda em relação a um vizinho (fronteira de decisão) são plotados, formando uma superfície pontilhada que representa o hiperplano entre as classes.
 
 ## Como executar
 
@@ -77,14 +87,13 @@ pip install -r requirements.txt
 python main.py
 ```
 
-A execução imprime no console a análise exploratória, o resultado da divisão treino/teste, as métricas de avaliação e o resultado de uma previsão de exemplo, além de salvar os três gráficos na pasta `graphs/` (as janelas de plot também abrem interativamente, caso o ambiente suporte).
+A execução imprime no console a validação/análise dos dados de treinamento, a divisão treino/validação, as métricas de avaliação do modelo e a `area_ti_predita` para cada usuário de `dados_teste.xlsx`, além de salvar os dois gráficos de dispersão na pasta `graphs/` (as janelas de plot também abrem interativamente, caso o ambiente suporte).
 
 ## Resultados entregues
 
-- **Console**: informações do dataset (linhas, colunas, nulos, estatísticas descritivas), tamanho dos conjuntos de treino/teste, acurácia, matriz de confusão e `classification_report` do modelo, e a previsão para um novo cliente de exemplo (`idade=31, renda=3500, score=680`).
+- **Console**: validação e análise exploratória de `dados_treinamento.xlsx`, tamanho dos conjuntos de treino/validação, acurácia/matriz de confusão/`classification_report` do modelo, e a tabela final com `id_usuario`, `data_hora`, `q1`..`q10` e `area_ti_predita` para cada usuário de `dados_teste.xlsx`.
 - **Gráficos** (pasta `graphs/`):
-  - [`distribuicao_classes.png`](graphs/distribuicao_classes.png) — balanceamento das classes (compra vs. não compra).
-  - [`matriz_confusao.png`](graphs/matriz_confusao.png) — desempenho do classificador no conjunto de teste.
-  - [`dados_pca.png`](graphs/dados_pca.png) — projeção 2D (PCA) dos dados, colorida pela classe.
+  - [`dispersao_2d.png`](graphs/dispersao_2d.png) — "Gráfico de Dispersão 2D": projeção 2D (PCA) dos dados, com treino e previsões reais identificáveis por classe.
+  - [`dispersao_3d.png`](graphs/dispersao_3d.png) — "Gráfico de Dispersão 3D": projeção 3D (PCA) dos dados, com treino e previsões reais identificáveis por classe.
 
-> **Observação:** a base (`data/dados_svm.xlsx`) contém apenas 8 registros — é um dataset de exemplo com finalidade didática, usado para demonstrar o pipeline de ponta a ponta (carregamento, pré-processamento, treinamento, avaliação e previsão). Os resultados numéricos (ex.: acurácia de 100%) refletem esse volume reduzido de dados e não devem ser interpretados como desempenho em um cenário de produção.
+> **Observação:** `data/dados_treinamento.xlsx` e `data/dados_teste.xlsx` contêm dados sintéticos gerados para fins didáticos, com o objetivo de demonstrar o fluxo completo de Machine Learning supervisionado (carregamento, validação, pré-processamento, treinamento, avaliação, previsão e visualização). Os resultados numéricos não devem ser interpretados como desempenho em um cenário de produção com dados reais de usuários.
