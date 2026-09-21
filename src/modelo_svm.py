@@ -2,7 +2,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-
+# Realiza a divisão dos dados fornecidos, "test_size" reserva 20% dos dados para validação, "random_state" garante um valor fixo de reproduções, permitindo comparações validas
 def dividir_dados(X, y, test_size=0.2, random_state=42):
 
     X_treino, X_teste, y_treino, y_teste = train_test_split(
@@ -10,7 +10,7 @@ def dividir_dados(X, y, test_size=0.2, random_state=42):
         y,
         test_size=test_size,
         random_state=random_state,
-        stratify=y
+        stratify=y # Garante a divisão igualitaria entre as classes de dados, 
     )
 
     return X_treino, X_teste, y_treino, y_teste

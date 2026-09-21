@@ -31,9 +31,8 @@ CAMINHO_DADOS_TESTE = "data/dados_teste.xlsx"
 def main():
 
     # Carregar e validar dados de treinamento 
-
     df_treinamento = carregar_planilha(CAMINHO_DADOS_TREINAMENTO)
-
+    
     if df_treinamento is None:
         return
 
