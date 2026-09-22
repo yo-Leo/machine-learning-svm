@@ -10,18 +10,18 @@ def dividir_dados(X, y, test_size=0.2, random_state=42):
         y,
         test_size=test_size,
         random_state=random_state,
-        stratify=y # Garante a divisão igualitaria entre as classes de dados, 
+        stratify=y # Garante a divisão igualitaria entre as classes de dados
     )
 
     return X_treino, X_teste, y_treino, y_teste
 
 
 def criar_modelo():
-
+    # Chama a classe SVC, especializada em classificação
     modelo = SVC(
-        kernel="rbf",
-        C=1.0,
-        gamma="scale"
+        kernel="linear", # Valor especifico para o calculo de Kernel, avisando para a classe que está lidando com uma classificação não linear
+        C=1.0, # Parametro C com valor alto, diminuindo a tolerância com objetos fora da margem 
+        gamma=10 # Determina automaticamente o quanto objetos vão influenciar na fronteira
     )
 
     return modelo
