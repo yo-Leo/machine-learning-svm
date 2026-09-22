@@ -29,12 +29,9 @@ def criar_modelo():
 
 def treinar_modelo(X_treino, y_treino):
 
-    scaler = StandardScaler()
-
-    X_treino_escalado = scaler.fit_transform(X_treino)
-
-    modelo = criar_modelo()
-
-    modelo.fit(X_treino_escalado, y_treino)
+    scaler = StandardScaler() # Método para padronizar as caracteristicas (X), impedindo que valores muito distoantes corrompam o processo
+    X_treino_escalado = scaler.fit_transform(X_treino) # Metodo duplo, que analisa grandes diferenças de valores e realiza o tratamento 
+    modelo = criar_modelo() # Grava o padrão de modelo pre estabelecida na variavel 
+    modelo.fit(X_treino_escalado, y_treino) # Analisa os dados de treino com o padrão SVM passado
 
     return modelo, scaler
